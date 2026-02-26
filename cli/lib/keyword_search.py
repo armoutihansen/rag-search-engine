@@ -196,4 +196,12 @@ class InvertedIndex:
             scores[doc_id] = score
             
         sorted_docs = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-        return [(self.docmap[doc_id], score) for doc_id, score in sorted_docs[:limit]]
+        return [
+            {
+                "id": doc_id,
+                "title": self.docmap[doc_id]["title"],
+                "document": self.docmap[doc_id].get("description", ""),
+                "score": score
+            }
+            for doc_id, score in sorted_docs[:limit]
+        ]
