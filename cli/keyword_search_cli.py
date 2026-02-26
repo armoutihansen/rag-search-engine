@@ -151,8 +151,8 @@ def main() -> None:
                 print("Index files not found. Please run the 'build' command to create the index before searching.")
                 sys.exit(1)
             results = index.bm25_search(args.query, args.limit, args.k1, args.b)
-            for movie, score in results:
-                print(f"({movie['id']}) {movie['title']} - Score: {score:.2f}")
+            for result in results:
+                print(f"({result['id']}) {result['title']} - Score: {result['score']:.2f}")
         case _:
             parser.print_help()
 

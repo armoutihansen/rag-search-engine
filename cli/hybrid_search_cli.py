@@ -52,7 +52,7 @@ def main() -> None:
             results = search.rrf_search(args.query, k=args.k, limit=args.limit)
             print(f"RRF search results for query: '{args.query}' with k={args.k}")
             for i, result in enumerate(results, start=1):
-                print(f"{i}. {result['title']}\n RRF Score: {result['score']:.4f})\n  {result['document'][:100]}")
+                print(f"{i}. {result['title']}\n RRF Score: {result['score']:.4f})\n BM25 Rank: {result['metadata']['bm25_rank']}, Semantic Rank: {result['metadata']['semantic_rank']}\n {result['document'][:100]}")
         case _:
             parser.print_help()
 

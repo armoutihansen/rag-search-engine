@@ -14,6 +14,10 @@ class InvertedIndex:
         self.stemmer = PorterStemmer()
         self.doc_lengths = defaultdict(int)
         self.doc_lengths_path = os.path.join("cache", "doc_lengths.pkl")
+        
+        # Load stopwords once
+        with open("./data/stopwords.txt", "r", encoding="utf-8") as f:
+            self.stopwords = set(f.read().splitlines())
 
     def _preprocess(self, text: str) -> str:
         """Remove punctuation and convert to lowercase.
@@ -36,10 +40,8 @@ class InvertedIndex:
         Returns:
             list: _list of stemmed tokens_
         """
-        with open("./data/stopwords.txt", "r", encoding="utf-8") as f:
-            stopwords = set(f.read().splitlines())
         tokens = text.split()
-        return [self.stemmer.stem(token) for token in tokens if len(token) > 0 and token not in stopwords]
+        return [self.stemmer.stem(token) for token in tokens if len(token) > 0 and token not in self.stopwords]
 
     def __add_document(self, doc_id: int, text: str) -> None:
         """Tokenize the input text, then add each token to the index with the document ID.

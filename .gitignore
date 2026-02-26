@@ -1,6 +1,7 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*.pyc
 build/
 dist/
 wheels/
@@ -8,7 +9,27 @@ wheels/
 
 # Virtual environments
 .venv
+venv/
+ENV/
 
-# Data
-/data/
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data and cache
 /cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Environment variables
+.env
+.env.local
