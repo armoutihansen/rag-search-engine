@@ -1,9 +1,9 @@
 import argparse
 from pathlib import Path
 import json
-from lib.hybrid_search import (
-    HybridSearch
-    )
+
+from lib.hybrid_search import HybridSearch
+from lib.utils import load_movies_data
 
 
 def main():
@@ -22,9 +22,7 @@ def main():
     with open(Path("./data/golden_dataset.json"), "r") as f:
         golden_dataset = json.load(f)
     test_cases = golden_dataset["test_cases"]
-    data_path = Path("./data/movies.json")
-    data = json.loads(data_path.read_text(encoding="utf-8"))
-    documents = data["movies"]
+    documents = load_movies_data()
     search = HybridSearch(documents)
     
     print(f"Evaluating RRF search with k={limit} on {len(test_cases)} test cases...")

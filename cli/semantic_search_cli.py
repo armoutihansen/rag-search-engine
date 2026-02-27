@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 
 import argparse
-import json
-import re
-from pathlib import Path
 
 from lib.semantic_search import (
     ChunkedSemanticSearch,
     SemanticSearch,
-    cosine_similarity,
     embed_query_text,
     embed_text,
     semantic_chunking,
     verify_embeddings,
     verify_model,
 )
+from lib.utils import load_movies_data
 
 
 def main():
@@ -92,9 +89,7 @@ def main():
             embed_query_text(args.query)
         case "search":
             search = SemanticSearch()
-            data_path = Path("./data/movies.json")
-            data = json.loads(data_path.read_text(encoding="utf-8"))
-            documents = data["movies"]
+            documents = load_movies_data()
             search.load_or_create_embeddings(documents)
             results = search.search(args.query, limit=args.limit)
             print(f"Search results for query: '{args.query}'")
@@ -122,17 +117,13 @@ def main():
                 print(f"{i}. {chunk}")
         case "embed_chunks":
             search = ChunkedSemanticSearch()
-            data_path = Path("./data/movies.json")
-            data = json.loads(data_path.read_text(encoding="utf-8"))
-            documents = data["movies"]
+            documents = load_movies_data()
             embeddings = search.load_or_create_chunk_embeddings(documents)
             print(f"Generated {len(embeddings)} chunked embeddings")
 
         case "search_chunked":
             search = ChunkedSemanticSearch()
-            data_path = Path("./data/movies.json")
-            data = json.loads(data_path.read_text(encoding="utf-8"))
-            documents = data["movies"]
+            documents = load_movies_data()
             search.load_or_create_chunk_embeddings(documents)
             results = search.search_chunks(args.query, limit=args.limit)
             for i, result in enumerate(results, start=1):

@@ -1,7 +1,5 @@
 import argparse
-import json
 import os
-from pathlib import Path
 
 from dotenv import load_dotenv
 from lib.hybrid_search import (
@@ -14,6 +12,7 @@ from lib.hybrid_search import (
     rate_matches_with_query_batch,
     evaluate_rrf
 )
+from lib.utils import load_movies_data
 
 
 def main() -> None:
@@ -92,9 +91,7 @@ def main() -> None:
             for score in normalized_scores:
                 print(f"* {score:.4f}")
         case "weighted-search":
-            data_path = Path("./data/movies.json")
-            data = json.loads(data_path.read_text(encoding="utf-8"))
-            documents = data["movies"]
+            documents = load_movies_data()
             search = HybridSearch(documents)
             results = search.weighted_search(
                 args.query, alpha=args.alpha, limit=args.limit
@@ -108,9 +105,7 @@ def main() -> None:
                 )
 
         case "rrf-search":
-            data_path = Path("./data/movies.json")
-            data = json.loads(data_path.read_text(encoding="utf-8"))
-            documents = data["movies"]
+            documents = load_movies_data()
             search = HybridSearch(documents, debug=args.debug)
             query = args.query
             limit = args.limit

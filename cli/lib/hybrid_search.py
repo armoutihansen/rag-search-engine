@@ -3,6 +3,7 @@ import time
 import json
 import logging
 
+from .constants import GEMINI_MODEL
 from .keyword_search import InvertedIndex
 from .semantic_search import ChunkedSemanticSearch
 from sentence_transformers import CrossEncoder
@@ -157,7 +158,7 @@ class HybridSearch:
                     "bm25_rank": rank,
                     "semantic_rank": None,
                     "title": result["title"],
-                    "document": result.get("description", ""),
+                    "document": result.get("document", ""),
                 }
             else:
                 # Take the best (smallest) rank if duplicate
@@ -253,9 +254,9 @@ def spell_correct_query(query: str, api_key: str) -> str:
 Only correct obvious typos. Don't change correctly spelled words.
 Query: "{query}"
 If no errors, return the original query.
-Corrected:"""
+Corrected:"""  
 
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
     corrected = response.text.strip()
     if corrected != query:
         logger.info(f"[ENHANCE] Spell correct: '{query}' -> '{corrected}'")
@@ -294,7 +295,7 @@ Examples:
 
 Rewritten query:"""
 
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
     rewritten = response.text.strip()
     if rewritten != query:
         logger.info(f"[ENHANCE] Rewrite: '{query}' -> '{rewritten}'")
@@ -330,7 +331,7 @@ Examples:
 Query: "{query}"
 """
 
-    response = client.models.generate_content(model="gemini-2.5-flash", contents=prompt)
+    response = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
     expanded = response.text.strip()
     if expanded != query:
         logger.info(f"[ENHANCE] Expand: '{query}' -> '{expanded}'")
@@ -368,7 +369,7 @@ Give me ONLY the number in your response, no other text or explanation.
 Score:"""
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=GEMINI_MODEL,
             contents=prompt
         )
         try:
@@ -414,7 +415,7 @@ Return ONLY the IDs in order of relevance (best match first). Return a valid JSO
 """ 
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model=GEMINI_MODEL,
         contents=prompt
     )
     
@@ -508,7 +509,7 @@ Return ONLY the scores in the same order you were given the documents. Return a 
 [2, 0, 3, 2, 0, 1]"""
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model=GEMINI_MODEL,
         contents=prompt
     )
     

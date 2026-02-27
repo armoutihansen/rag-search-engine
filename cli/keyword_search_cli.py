@@ -8,6 +8,7 @@ from pathlib import Path
 
 from lib.constants import BM25_B, BM25_K1
 from lib.keyword_search import InvertedIndex
+from lib.utils import load_movies_data
 from nltk.stem import PorterStemmer
 
 
@@ -70,9 +71,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    data_path = Path("./data/movies.json")
-    data = json.loads(data_path.read_text(encoding="utf-8"))
-    movies = data["movies"]
+    movies = load_movies_data()
 
     with open("./data/stopwords.txt", "r", encoding="utf-8") as f:
         stopwords = list(f.read().splitlines())

@@ -1,14 +1,16 @@
 import json
 import os
 import re
-from pathlib import Path
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
+from .constants import SEMANTIC_MODEL
+from .utils import load_movies_data
+
 
 class SemanticSearch:
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = SEMANTIC_MODEL):
         self.model = SentenceTransformer(model_name)
         self.embeddings = None
         self.documents = None
@@ -78,7 +80,7 @@ class SemanticSearch:
 
 
 class ChunkedSemanticSearch(SemanticSearch):
-    def __init__(self, model_name="all-MiniLM-L6-v2"):
+    def __init__(self, model_name: str = SEMANTIC_MODEL):
         super().__init__(model_name)
         self.chunk_embeddings = None
         self.chunk_metadata = None
@@ -189,9 +191,7 @@ def embed_text(text: str):
 
 def verify_embeddings():
     search = SemanticSearch()
-    data_path = Path("./data/movies.json")
-    data = json.loads(data_path.read_text(encoding="utf-8"))
-    documents = data["movies"]
+    documents = load_movies_data()
     embeddings = search.load_or_create_embeddings(documents)
     print(f"Number of docs:   {len(documents)}")
     print(

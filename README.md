@@ -6,17 +6,23 @@ A hybrid search engine combining keyword-based (BM25) and semantic search for mo
 
 - **Keyword Search**: BM25 algorithm with stemming and stopword removal
 - **Semantic Search**: Sentence transformer embeddings with chunked document support
-- **Hybrid Search**: Combines both approaches using:
+- **Multimodal Search**: Image-based search using CLIP vision embeddings
+- **Hybrid Search**: Combines keyword and semantic approaches using:
   - Weighted score combination
   - Reciprocal Rank Fusion (RRF)
 - **AI-Powered Query Enhancement** (via Gemini API):
   - Spell correction
   - Query rewriting for better search results
   - Query expansion with related terms
+  - Image-to-query transformation for vision-based searches
 - **AI-Powered Reranking** (via Gemini API or Cross-Encoder):
   - Individual document scoring (0-10 scale)
   - Batch ranking (more efficient)
   - Cross-encoder reranking
+- **Retrieval-Augmented Generation (RAG)**: Generate answers from retrieved results
+  - Question answering
+  - Summary generation
+  - Citation-based answers
 - **Debug Pipeline**: Track query transformations and results through each stage
 - **Evaluation Framework**: Test search quality with precision, recall, and F1 metrics
 - **Efficient Caching**: Embeddings and indexes are cached for fast retrieval
@@ -71,21 +77,31 @@ uv run cli/hybrid_search_cli.py rrf-search "family comedy" \
 rag-search-engine/
 ├── cli/
 │   ├── lib/
-│   │   ├── keyword_search.py    # BM25 inverted index
-│   │   ├── semantic_search.py   # Embedding-based search
-│   │   ├── hybrid_search.py     # Combined search strategies
-│   │   └── constants.py         # BM25 parameters
-│   ├── keyword_search_cli.py    # Keyword search CLI
-│   ├── semantic_search_cli.py   # Semantic search CLI
-│   ├── hybrid_search_cli.py     # Hybrid search CLI
-│   └── evaluation_cli.py        # Search evaluation CLI
+│   │   ├── keyword_search.py           # BM25 inverted index
+│   │   ├── semantic_search.py          # Embedding-based search
+│   │   ├── hybrid_search.py            # Combined search strategies + AI features
+│   │   ├── multimodal_search.py        # Image-based search with CLIP
+│   │   ├── augmented_generation.py     # RAG (question answering, summarization)
+│   │   ├── describe_image.py           # Image-to-query enhancement
+│   │   ├── constants.py                # Configuration constants
+│   │   ├── utils.py                    # Shared utility functions
+│   │   └── __init__.py                 # Package initialization
+│   ├── keyword_search_cli.py           # Keyword search CLI
+│   ├── semantic_search_cli.py          # Semantic search CLI
+│   ├── hybrid_search_cli.py            # Hybrid search CLI
+│   ├── multimodal_search_cli.py        # Image search CLI
+│   ├── augmented_generation_cli.py     # RAG CLI
+│   ├── describe_image_cli.py           # Image description CLI
+│   ├── evaluation_cli.py               # Search evaluation CLI
+│   └── test_gemini.py                  # Gemini API testing
 ├── data/
-│   ├── movies.json              # Movie dataset
-│   ├── stopwords.txt            # Stopwords list
-│   └── golden_dataset.json      # Test cases for evaluation
-├── cache/                       # Generated indexes and embeddings
-├── .env                         # API keys (not in repo)
-└── pyproject.toml              # Project configuration
+│   ├── movies.json                     # Movie dataset with descriptions
+│   ├── stopwords.txt                   # Stopwords list
+│   └── golden_dataset.json             # Test cases for evaluation
+├── cache/                              # Generated indexes and embeddings
+├── .env                                # API keys (not in repo)
+├── pyproject.toml                      # Project configuration
+└── README.md                           # This file
 ```
 
 ## Usage
@@ -140,6 +156,23 @@ uv run cli/semantic_search_cli.py search "family friendly animation" --limit 5
 **Embed text:**
 ```bash
 uv run cli/semantic_search_cli.py embed_text "hero's journey"
+```
+
+### Multimodal Search (Image-Based)
+
+**Verify image embedding generation:**
+```bash
+uv run cli/multimodal_search_cli.py verify_image_embedding data/paddington.jpeg
+```
+
+**Search for similar movies using an image:**
+```bash
+uv run cli/multimodal_search_cli.py image_search data/paddington.jpeg --limit 5
+```
+
+**Get image-enhanced search query:**
+```bash
+uv run cli/describe_image_cli.py --image data/paddington.jpeg --query "bear in London"
 ```
 
 ### Hybrid Search
@@ -219,6 +252,30 @@ Output format:
   - F1 Score: 0.5333
   - Retrieved: The Edge, Man in the Wilderness, Claws, Unnatural, Into the Grizzly Maze
   - Relevant: Unnatural, Alaska, The Edge, Into the Grizzly Maze, Claws, Man in the Wilderness, The Revenant
+```
+
+### Retrieval-Augmented Generation (RAG)
+
+Generate answers using retrieved movie information (requires GEMINI_API_KEY):
+
+**Question answering:**
+```bash
+uv run cli/augmented_generation_cli.py question "What dinosaur movies are available?" --limit 5
+```
+
+**Generate summaries:**
+```bash
+uv run cli/augmented_generation_cli.py summarize "action adventure movies" --limit 5
+```
+
+**Generate answers with citations:**
+```bash
+uv run cli/augmented_generation_cli.py citations "Comedy films with animals" --limit 5
+```
+
+**RAG (immediate generation):**
+```bash
+uv run cli/augmented_generation_cli.py rag "British family comedies"
 ```
 
 ## Search Strategies
@@ -306,24 +363,48 @@ Example output:
 ### Environment Variables
 Add to `.env` file:
 ```bash
-GEMINI_API_KEY=your_api_key_here  # Required for query enhancement and AI reranking
+GEMINI_API_KEY=your_api_key_here  # Required for query enhancement, reranking, RAG, and image description
 ```
 
-### BM25 Parameters
+### Constants
 Edit `cli/lib/constants.py`:
 ```python
-BM25_K1 = 1.5  # Term saturation parameter
-BM25_B = 0.75  # Length normalization parameter
+# BM25 Parameters
+BM25_K1 = 1.5          # Term saturation parameter
+BM25_B = 0.75          # Length normalization parameter
+
+# Model Names  
+GEMINI_MODEL = "gemini-2.5-flash"           # LLM for AI features
+SEMANTIC_MODEL = "all-MiniLM-L6-v2"         # Sentence transformer for semantic search
+MULTIMODAL_MODEL = "clip-ViT-B-32"          # CLIP model for image search
+
+# Data Paths
+DEFAULT_DATA_PATH = "./data/movies.json"    # Movie dataset location
 ```
 
-### Search Expansion Factor
+### Search Configuration
 Edit `cli/lib/hybrid_search.py`:
 ```python
 SEARCH_EXPANSION_FACTOR = 500  # Number of candidates to retrieve before re-ranking
 ```
 
+### Utilities
+Common utilities are centralized in `cli/lib/utils.py`:
+```python
+from cli.lib.utils import load_movies_data
+
+# Load movie data
+documents = load_movies_data()
+```
+
 ### Logging
-The system automatically suppresses verbose library logs and only shows application-level logs when using `--debug`.
+- Application logs only shown with `--debug` flag
+- Library logs (HTTP, model loading) automatically suppressed
+- Configure in your code:
+```python
+import logging
+logger = logging.getLogger(__name__)
+```
 
 ## API Examples
 
@@ -415,6 +496,46 @@ for result in reranked[:5]:
 reranked = rate_matches_with_query_batch(query, results, api_key)
 for result in reranked[:5]:
     print(f"{result['title']}: Rank {result['match_score']}")
+```
+
+### Using Multimodal Search
+
+```python
+from cli.lib.multimodal_search import MultimodalSearch
+from cli.lib.utils import load_movies_data
+
+# Load documents
+documents = load_movies_data()
+
+# Initialize multimodal search
+search = MultimodalSearch(documents)
+
+# Search using an image
+results = search.search_with_image("data/paddington.jpeg", limit=5)
+
+# Results include similarity scores
+for result in results:
+    print(f"{result['title']}: {result['score']:.3f}")
+    print(f"  {result['description'][:100]}...")
+```
+
+### Using Retrieval-Augmented Generation (RAG)
+
+```python
+from cli.lib.hybrid_search import HybridSearch
+from cli.lib.augmented_generation import question_answering
+from cli.lib.utils import load_movies_data
+import os
+
+api_key = os.environ.get("GEMINI_API_KEY")
+documents = load_movies_data()
+
+# Search for relevant documents
+search = HybridSearch(documents)
+results = search.rrf_search("dinosaur movies", limit=5)
+
+# Generate answer using retrieved documents
+question_answering("What dinosaur movies are available?", results, api_key)
 ```
 
 ## Performance Considerations
@@ -536,6 +657,26 @@ uv run cli/hybrid_search_cli.py rrf-search "bear movie" \
 uv run cli/hybrid_search_cli.py rrf-search "romantic comedy" \
   --rerank-method cross_encoder \
   --limit 5
+```
+
+### Use Case 6: Image-Based Search
+```bash
+# Best for: Visual search when you have an image reference
+uv run cli/multimodal_search_cli.py image_search data/paddington.jpeg --limit 5
+```
+
+### Use Case 7: AI-Generated Answers
+```bash
+# Best for: Getting comprehensive information about search results
+uv run cli/augmented_generation_cli.py question "What adventure movies are available?" --limit 5
+```
+
+### Use Case 8: Image with Query Enhancement
+```bash
+# Best for: Improving searches by combining image and text
+uv run cli/describe_image_cli.py \
+  --image data/paddington.jpeg \
+  --query "bear in city"
 ```
 
 ## Troubleshooting
