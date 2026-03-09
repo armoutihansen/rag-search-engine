@@ -10,7 +10,7 @@ from lib.hybrid_search import (
     spell_correct_query,
     rate_matches_with_query,
     rate_matches_with_query_batch,
-    evaluate_rrf
+    evaluate_rrf,
 )
 from lib.utils import load_movies_data
 
@@ -63,14 +63,12 @@ def main() -> None:
         help="Method to use for reranking the results",
     )
     rrf_search_parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug logging for search pipeline"
+        "--debug", action="store_true", help="Enable debug logging for search pipeline"
     )
     rrf_search_parser.add_argument(
         "--evaluate",
         action="store_true",
-        help="Run evaluation of RRF using and LLM-based evaluation"
+        help="Run evaluation of RRF using and LLM-based evaluation",
     )
 
     args = parser.parse_args()
@@ -118,7 +116,7 @@ def main() -> None:
                 elif args.enhance == "expand":
                     enhanced_query = expand_query(query, api_key)
                 query = enhanced_query
-            
+
             if args.rerank_method:
                 if not api_key and not args.rerank_method == "cross_encoder":
                     print("GEMINI_API_KEY is required for this reranking method.")
@@ -126,27 +124,33 @@ def main() -> None:
                 limit = limit * 5
 
             results = search.rrf_search(query, k=args.k, limit=limit)
-            
+
             if args.rerank_method:
                 if args.rerank_method == "individual":
                     results = rate_matches_with_query(query, results, api_key)
                     if args.debug:
                         import logging as log_module
+
                         logger_obj = log_module.getLogger(__name__)
                         logger_obj.info("Reranking complete (individual method)")
-                        for i, result in enumerate(results[:args.limit], 1):
-                            logger_obj.info(f"  {i}. {result['title']} (score: {result.get('match_score', 0.0):.1f})")
+                        for i, result in enumerate(results[: args.limit], 1):
+                            logger_obj.info(
+                                f"  {i}. {result['title']} (score: {result.get('match_score', 0.0):.1f})"
+                            )
                 elif args.rerank_method == "batch":
                     results = rate_matches_with_query_batch(query, results, api_key)
                     if args.debug:
                         import logging as log_module
+
                         logger_obj = log_module.getLogger(__name__)
                         logger_obj.info("Reranking complete (batch method)")
-                        for i, result in enumerate(results[:args.limit], 1):
-                            logger_obj.info(f"  {i}. {result['title']} (rank: {int(result.get('match_score', 999))})")
+                        for i, result in enumerate(results[: args.limit], 1):
+                            logger_obj.info(
+                                f"  {i}. {result['title']} (rank: {int(result.get('match_score', 999))})"
+                            )
                 elif args.rerank_method == "cross_encoder":
                     results = cross_encode_matches(query, results)
-            
+
             print(f"Results for query: '{query}' with k={args.k}")
             for i, result in enumerate(results, start=1):
                 if i > args.limit:
