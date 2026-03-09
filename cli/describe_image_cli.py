@@ -21,6 +21,5 @@ def main() -> None:
         image_data = f.read()
     
     describe_image(image_data, mime, query, api_key)
-    
 if __name__ == "__main__":
     main()
